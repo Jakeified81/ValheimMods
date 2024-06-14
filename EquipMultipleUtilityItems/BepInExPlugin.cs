@@ -284,29 +284,7 @@ namespace EquipMultipleUtilityItems
                     //Dbgl($"Error: {Environment.StackTrace}");
                 }
             }
-        }                
-        
-        [HarmonyPatch(typeof(Humanoid), "UnequipAllItems")]
-        static class UnequipAllItems_Patch
-        {
-            static void Postfix(Humanoid __instance, ItemDrop.ItemData ___m_utilityItem)
-            {
-                try
-                {
-                    if (!modEnabled.Value || !__instance.IsPlayer())
-                        return;
-
-                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equipped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem);
-                    foreach (ItemDrop.ItemData item in list)
-                        __instance.UnequipItem(item, false);
-                }
-                catch
-                {
-                    Dbgl($"Error: {Environment.StackTrace}");
-
-                }
-            }
-        }
+        }              
                     
                     
         [HarmonyPatch(typeof(Player), nameof(Player.UnequipDeathDropItems))]
