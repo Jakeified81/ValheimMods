@@ -1,4 +1,4 @@
-﻿using BepInEx;
+using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
@@ -33,9 +33,8 @@ namespace ExtendedPlayerInventory
         public static ConfigEntry<string> utilityText;
         public static ConfigEntry<float> quickAccessScale;
         
-        public static ConfigEntry<string> hotKey1;
-        public static ConfigEntry<string> hotKey2;
-        public static ConfigEntry<string> hotKey3;
+        public static readonly ConfigEntry<KeyboardShortcut>[] KeyCodes = new ConfigEntry<KeyboardShortcut>[QuickSlotCount];
+        public static readonly ConfigEntry<string>[] HotkeyLabels = new ConfigEntry<string>[QuickSlotCount];
         public static ConfigEntry<string> modKeyOne;
         public static ConfigEntry<string> modKeyTwo;
 
@@ -43,6 +42,8 @@ namespace ExtendedPlayerInventory
         
         private static ConfigEntry<float> quickAccessX;
         private static ConfigEntry<float> quickAccessY;
+
+        private static ConfigEntry<bool> _loggingEnabled;
 
         private static GameObject elementPrefab;
         
@@ -79,7 +80,22 @@ namespace ExtendedPlayerInventory
             nexusID = Config.Bind<int>("General", "NexusID", 1356, "Nexus mod ID for updates");
             nexusID.Value = 1356;
 
+            _loggingEnabled = Config.Bind("Logging", "Logging Enabled", false, "Enable logging");
+            KeyCodes[0] = Config.Bind("Hotkeys", "Quick slot hotkey 1", new KeyboardShortcut(KeyCode.Z), "Hotkey for Quick Slot 1.");
+            if (KeyCodes[0].Value.MainKey == KeyCode.None)
+                KeyCodes[0].Value = new KeyboardShortcut(KeyCode.Z);
+            
+            KeyCodes[1] = Config.Bind("Hotkeys", "Quick slot hotkey 2", new KeyboardShortcut(KeyCode.V), "Hotkey for Quick Slot 2.");
+            if (KeyCodes[1].Value.MainKey == KeyCode.None)
+                KeyCodes[1].Value = new KeyboardShortcut(KeyCode.V);
+            
+            KeyCodes[2] = Config.Bind("Hotkeys", "Quick slot hotkey 3", new KeyboardShortcut(KeyCode.B), "Hotkey for Quick Slot 3.");
+            if (KeyCodes[2].Value.MainKey == KeyCode.None)
+                KeyCodes[2].Value = new KeyboardShortcut(KeyCode.B); 
 
+            HotkeyLabels[0] = Config.Bind("Hotkeys", "Quick slot hotkey label 1", "", "Hotkey Label for Quick Slot 1. Leave blank to use the hotkey itself.");
+            HotkeyLabels[1] = Config.Bind("Hotkeys", "Quick slot hotkey label 2", "", "Hotkey Label for Quick Slot 2. Leave blank to use the hotkey itself.");
+            HotkeyLabels[2] = Config.Bind("Hotkeys", "Quick slot hotkey label 3", "", "Hotkey Label for Quick Slot 3. Leave blank to use the hotkey itself.");
             extraRows = Config.Bind<int>("Toggles", "ExtraRows", 0, "Number of extra ordinary rows.");
             addEquipmentRow = Config.Bind<bool>("Toggles", "AddEquipmentRow", true, "Add special row for equipped items and quick slots.");
             showGearInMenu = Config.Bind<bool>("Toggles", "ShowGearInMenu", true, "Display equipped items in the main menu.");
@@ -91,25 +107,12 @@ namespace ExtendedPlayerInventory
             backText = Config.Bind<string>("Strings", "BackText", "Back", "Text to show for back slot.");
             utilityText = Config.Bind<string>("Strings", "UtilityText", "Utility", "Text to show for utility slot.");
             
-            quickAccessScale = Config.Bind<float>("Misc", "QuickAccessScale", 1, "Scale of quick access bar.");
-            
-            hotKey1 = Config.Bind<string>("Hotkeys", "HotKey1", "v", "Hotkey 1 - Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
-            hotKey2 = Config.Bind<string>("Hotkeys", "HotKey2", "b", "Hotkey 2 - Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
-            hotKey3 = Config.Bind<string>("Hotkeys", "HotKey3", "n", "Hotkey 3 - Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
-
+            quickAccessScale = Config.Bind<float>("Misc", "QuickAccessScale", 1, "Scale of quick access bar."\
             modKeyOne = Config.Bind<string>("Hotkeys", "ModKey1", "mouse 0", "First modifier key to move quick slots. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html format.");
             modKeyTwo = Config.Bind<string>("Hotkeys", "ModKey2", "left ctrl", "Second modifier key to move quick slots. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html format.");
 
             quickAccessX = Config.Bind<float>("ZCurrentPositions", "quickAccessX", 9999, "Current X of Quick Slots");
             quickAccessY = Config.Bind<float>("ZCurrentPositions", "quickAccessY", 9999, "Current Y of Quick Slots");
-
-
-            hotkeys = new ConfigEntry<string>[]
-            {
-                hotKey1,
-                hotKey2,
-                hotKey3,
-            };
 
             harmony = new Harmony(Info.Metadata.GUID);
             harmony.PatchAll();
